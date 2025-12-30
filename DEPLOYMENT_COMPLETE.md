@@ -4,10 +4,11 @@
 
 Your Shambil Pride Academy School Management System is now fully configured and pushed to GitHub repository: **https://github.com/mssnbgac/shambilprideacad.git**
 
-### 🔧 Latest Fix Applied:
+### 🔧 Latest Fixes Applied:
 - **Fixed Vercel configuration error**: Removed conflicting `functions` property from `vercel.json`
-- **Moved maxDuration setting** to the builds configuration
-- **Configuration now compatible** with Vercel's latest requirements
+- **Updated Node.js version**: Upgraded from 18.x to 24.x as required by Vercel
+- **Updated npm version**: Upgraded to 10.x for compatibility
+- **Configuration now fully compatible** with Vercel's latest requirements
 
 ## 🚀 Next Steps: Deploy to Vercel
 
