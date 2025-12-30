@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Backend API for Shambil Pride Academy Management System",
   "main": "dist/index.js",
+  "engines": {
+    "node": "24.x",
+    "npm": "10.x"
+  },
   "scripts": {
     "dev": "nodemon src/index.ts",
     "dev-sqlite": "nodemon src/index.ts",

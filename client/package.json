@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Frontend for Shambil Pride Academy Management System",
   "private": true,
+  "engines": {
+    "node": "24.x",
+    "npm": "10.x"
+  },
   "dependencies": {
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
