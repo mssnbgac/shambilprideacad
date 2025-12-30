@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔐 Complete Login Test - Shambil Academy</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .status { padding: 15px; margin: 15px 0; border-radius: 8px; font-weight: 500; }
+        .success { background: #d4edda; border-left: 4px solid #28a745; color: #155724; }
+        .error { background: #f8d7da; border-left: 4px solid #dc3545; color: #721c24; }
+        .info { background: #d1ecf1; border-left: 4px solid #17a2b8; color: #0c5460; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; color: #856404; }
+        
+        button { 
+            background: #007bff; 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            margin: 8px 5px; 
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        button:hover { background: #0056b3; }
+        button.success { background: #28a745; }
+        button.success:hover { background: #1e7e34; }
+        
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 8px 0; 
+            border: 2px solid #ddd; 
+            border-radius: 6px; 
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input:focus { border-color: #007bff; outline: none; }
+        
+        pre { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 6px; 
+            overflow-x: auto; 
+            border: 1px solid #e9ecef;
+            font-size: 12px;
+        }
+        
+        .credentials-box {
+            background: #e7f3ff;
+            border: 2px solid #007bff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+        }
+        
+        h1 { color: #333; text-align: center; margin-bottom: 30px; }
+        h2 { color: #495057; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        h3 { color: #6c757d; }
+        
+        .step { margin: 15px 0; padding: 10px; background: #f1f3f4; border-radius: 5px; }
+        .step-number { 
+            background: #007bff; 
+            color: white; 
+            width: 25px; 
+            height: 25px; 
+            border-radius: 50%; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin-right: 10px; 
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏫 Shambil Pride Academy - Login Test Center</h1>
+        
+        <div class="credentials-box">
+            <h2>🔑 CORRECT LOGIN CREDENTIALS</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <strong>📧 Email:</strong><br>
+                    <code style="font-size: 16px; background: #fff; padding: 5px 10px; border-radius: 4px;">exam@shambil.edu.ng</code>
+                </div>
+                <div>
+                    <strong>🔒 Password:</strong><br>
+                    <code style="font-size: 16px; background: #fff; padding: 5px 10px; border-radius: 4px;">exam123</code>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <strong>👤 Role:</strong> Exam Officer<br>
+                <strong>🏢 Department:</strong> Examination Department
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🧪 API Connection Test</h2>
+            <button onclick="testServerConnection()">1️⃣ Test Server Status</button>
+            <button onclick="testDirectLogin()">2️⃣ Test Direct API Login</button>
+            <button onclick="openReactApp()" class="success">3️⃣ Open React App</button>
+            
+            <div id="apiResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔐 Manual Login Test</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <input type="email" id="testEmail" placeholder="Email" value="exam@shambil.edu.ng">
+                <input type="password" id="testPassword" placeholder="Password" value="exam123">
+            </div>
+            <button onclick="manualLogin()">🚀 Test Login</button>
+            
+            <div id="manualResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📋 Step-by-Step Testing Guide</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>Test API Connection:</strong> Click "Test Server Status" to verify backend is running
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>Test Direct Login:</strong> Click "Test Direct API Login" to verify authentication works
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>Test React App:</strong> Click "Open React App" to test in the actual application
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                <strong>Login in React:</strong> Use the credentials above in the React login form
+            </div>
+        </div>
+        
+        <div class="status info">
+            <strong>🔍 Troubleshooting:</strong><br>
+            • If API tests fail: Check if backend server is running on port 4000<br>
+            • If React app login fails: Check browser console for errors<br>
+            • If CORS errors: Verify server CORS configuration<br>
+            • If "Invalid credentials": Double-check email and password spelling
+        </div>
+        
+        <div class="status warning">
+            <strong>⚠️ Important Notes:</strong><br>
+            • Use <code>exam@shambil.edu.ng</code> NOT <code>david@shambilacdemy.com</code><br>
+            • Password is <code>exam123</code> NOT <code>password123</code><br>
+            • Backend runs on port 4000, frontend on port 3001
+        </div>
+    </div>
+
+    <script>
+        async function testServerConnection() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = '<div class="status info">🔄 Testing server connection...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:4000/api/auth/me', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.status === 401) {
+                    resultDiv.innerHTML = `<div class="status success">
+                        ✅ <strong>Server is running!</strong><br>
+                        Status: ${response.status} (Unauthorized - expected for /me endpoint)<br>
+                        Backend server is accessible on port 4000
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="status success">
+                        ✅ <strong>Server is running!</strong><br>
+                        Status: ${response.status}<br>
+                        Backend server is accessible on port 4000
+                    </div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">
+                    ❌ <strong>Server connection failed!</strong><br>
+                    Error: ${error.message}<br><br>
+                    <strong>Solutions:</strong><br>
+                    • Make sure backend server is running: <code>npm run dev-sqlite</code><br>
+                    • Check if port 4000 is available<br>
+                    • Verify server started without errors
+                </div>`;
+            }
+        }
+        
+        async function testDirectLogin() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = '<div class="status info">🔄 Testing direct API login...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:4000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'exam@shambil.edu.ng',
+                        password: 'exam123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="status success">
+                        ✅ <strong>API Login successful!</strong><br>
+                        User: ${data.user?.firstName} ${data.user?.lastName}<br>
+                        Role: ${data.user?.role}<br>
+                        Token received: ${data.token ? 'Yes' : 'No'}<br>
+                        <details>
+                            <summary>Full Response</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="status error">
+                        ❌ <strong>API Login failed!</strong><br>
+                        Status: ${response.status}<br>
+                        Message: ${data.message}<br>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">
+                    ❌ <strong>Login request failed!</strong><br>
+                    Error: ${error.message}<br>
+                    Check server logs for details
+                </div>`;
+            }
+        }
+        
+        async function manualLogin() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            const resultDiv = document.getElementById('manualResult');
+            
+            resultDiv.innerHTML = '<div class="status info">🔄 Testing manual login...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:4000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="status success">
+                        ✅ <strong>Manual login successful!</strong><br>
+                        Welcome: ${data.user?.firstName} ${data.user?.lastName}<br>
+                        Email: ${data.user?.email}<br>
+                        Role: ${data.user?.role}
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="status error">
+                        ❌ <strong>Manual login failed!</strong><br>
+                        Message: ${data.message}<br>
+                        <strong>Check:</strong><br>
+                        • Email spelling: ${email}<br>
+                        • Password: ${password}<br>
+                        • Use exact credentials from the blue box above
+                    </div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">
+                    ❌ <strong>Request failed!</strong><br>
+                    Error: ${error.message}
+                </div>`;
+            }
+        }
+        
+        function openReactApp() {
+            window.open('http://localhost:3001/login', '_blank');
+        }
+        
+        // Auto-test on page load
+        window.onload = function() {
+            setTimeout(testServerConnection, 500);
+        };
+    </script>
+</body>
+</html>

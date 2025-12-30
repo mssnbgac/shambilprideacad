@@ -1,0 +1,399 @@
+import React, { useState } from 'react';
+import { useQuery } from 'react-query';
+import axios from 'axios';
+import { academicSessions, getCurrentSession } from '../../utils/academicSessions';
+import ComplaintForm from '../ComplaintForm';
+import { 
+  MagnifyingGlassIcon,
+  UserGroupIcon, 
+  AcademicCapIcon, 
+  CalendarDaysIcon,
+  CurrencyDollarIcon,
+  DocumentArrowDownIcon,
+  ExclamationTriangleIcon,
+  ChatBubbleLeftRightIcon
+} from '@heroicons/react/24/outline';
+
+interface ChildData {
+  student: any;
+  recentResults: any[];
+  paymentStatus: any[];
+  attendance: {
+    present: number;
+    absent: number;
+    late: number;
+    totalDays: number;
+    percentage: number;
+  };
+}
+
+const ParentDashboard: React.FC = () => {
+  const [selectedChild, setSelectedChild] = useState<string>('');
+  const [selectedTerm, setSelectedTerm] = useState('first');
+  const [selectedYear, setSelectedYear] = useState('2024/2025');
+  const [admissionNumber, setAdmissionNumber] = useState('');
+  const [searchedStudent, setSearchedStudent] = useState<any>(null);
+  const [showComplaintForm, setShowComplaintForm] = useState(false);
+
+  const { data: childrenData, isLoading } = useQuery<{ children: ChildData[] }>(
+    'parent-dashboard-data',
+    () => axios.get('/api/dashboard/parent/current').then(res => res.data)
+  );
+
+  const searchByAdmissionNumber = async () => {
+    if (!admissionNumber.trim()) {
+      alert('Please enter an admission number');
+      return;
+    }
+    
+    try {
+      const response = await axios.get(`/api/students/search/admission/${admissionNumber}`);
+      setSearchedStudent(response.data);
+    } catch (error) {
+      console.error('Search error:', error);
+      alert('Student not found or you do not have access to this student');
+      setSearchedStudent(null);
+    }
+  };
+
+  const sendComplaint = () => {
+    setShowComplaintForm(true);
+  };
+
+  const downloadReceipt = async (studentId: string) => {
+    try {
+      const child = childrenData?.children.find(c => c.student._id === studentId);
+      const confirmedPayment = child?.paymentStatus?.find(p => p.status === 'paid');
+      if (confirmedPayment) {
+        const response = await axios.get(`/api/payments/${confirmedPayment._id}/receipt`);
+        console.log('Receipt data:', response.data);
+      } else {
+        alert('No confirmed payment found for this term');
+      }
+    } catch (error) {
+      console.error('Error downloading receipt:', error);
+    }
+  };
+
+  const downloadTranscript = async (studentId: string) => {
+    try {
+      const child = childrenData?.children.find(c => c.student._id === studentId);
+      const result = child?.recentResults?.find(r => r.academicYear === selectedYear && r.term === selectedTerm);
+      if (result) {
+        const response = await axios.get(`/api/results/${result._id}/transcript`);
+        console.log('Transcript data:', response.data);
+      } else {
+        alert('No results found for this term');
+      }
+    } catch (error) {
+      console.error('Error downloading transcript:', error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  const currentChild = selectedChild ? 
+    childrenData?.children.find(c => c.student._id === selectedChild) : 
+    childrenData?.children[0];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-lg">
+        <h1 className="text-2xl font-bold">Parent Dashboard</h1>
+        <p className="text-purple-100">Monitor your children's academic progress and school activities</p>
+      </div>
+
+      {/* Child Selector */}
+      <div className="bg-white p-4 rounded-lg shadow">
+        <div className="flex flex-wrap gap-4 items-center">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Select Child</label>
+            <select
+              value={selectedChild}
+              onChange={(e) => setSelectedChild(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2"
+            >
+              {childrenData?.children.map((child) => (
+                <option key={child.student._id} value={child.student._id}>
+                  {child.student.user.firstName} {child.student.user.lastName} - {child.student.class.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2"
+            >
+              {academicSessions.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Term</label>
+            <select
+              value={selectedTerm}
+              onChange={(e) => setSelectedTerm(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2"
+            >
+              <option value="first">First Term</option>
+              <option value="second">Second Term</option>
+              <option value="third">Third Term</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Student Search by Admission Number */}
+      <div className="bg-white p-4 rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-4 flex items-center">
+          <MagnifyingGlassIcon className="h-5 w-5 mr-2" />
+          Search Student by Admission Number
+        </h3>
+        <div className="flex gap-4 items-end">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Admission Number
+            </label>
+            <input
+              type="text"
+              value={admissionNumber}
+              onChange={(e) => setAdmissionNumber(e.target.value)}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="Enter admission number"
+            />
+          </div>
+          <button
+            onClick={searchByAdmissionNumber}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Search
+          </button>
+        </div>
+        
+        {searchedStudent && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <h4 className="font-semibold text-green-800">Student Found:</h4>
+            <p className="text-green-700">
+              {searchedStudent.user.firstName} {searchedStudent.user.lastName} - {searchedStudent.class.name}
+            </p>
+            <p className="text-sm text-green-600">Admission Number: {searchedStudent.admissionNumber}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Children Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {childrenData?.children.map((child) => (
+          <div key={child.student._id} className="bg-white p-6 rounded-lg shadow">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="h-12 w-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                {child.student.user.firstName.charAt(0)}{child.student.user.lastName.charAt(0)}
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">
+                  {child.student.user.firstName} {child.student.user.lastName}
+                </h3>
+                <p className="text-sm text-gray-600">{child.student.class.name}</p>
+                <p className="text-xs text-gray-500">{child.student.admissionNumber}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Attendance</span>
+                <span className={`font-semibold ${
+                  child.attendance.percentage >= 90 ? 'text-green-600' :
+                  child.attendance.percentage >= 75 ? 'text-yellow-600' : 'text-red-600'
+                }`}>
+                  {child.attendance.percentage}%
+                </span>
+              </div>
+              
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Recent Results</span>
+                <span className="font-semibold text-blue-600">
+                  {child.recentResults.length} available
+                </span>
+              </div>
+              
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Payment Status</span>
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  child.paymentStatus.some(p => p.status === 'paid') ? 
+                  'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {child.paymentStatus.some(p => p.status === 'paid') ? 'Paid' : 'Pending'}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => downloadReceipt(child.student._id)}
+                className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-xs hover:bg-blue-700"
+              >
+                Receipt
+              </button>
+              <button
+                onClick={() => downloadTranscript(child.student._id)}
+                className="flex-1 bg-green-600 text-white px-3 py-2 rounded text-xs hover:bg-green-700"
+              >
+                Transcript
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Detailed View for Selected Child */}
+      {currentChild && (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Attendance Rate</p>
+                  <p className="text-2xl font-bold text-gray-900">{currentChild.attendance.percentage}%</p>
+                  <p className="text-sm text-gray-500">
+                    {currentChild.attendance.present} of {currentChild.attendance.totalDays} days
+                  </p>
+                </div>
+                <div className="p-3 rounded-full bg-green-500">
+                  <CalendarDaysIcon className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Academic Results</p>
+                  <p className="text-2xl font-bold text-gray-900">{currentChild.recentResults.length}</p>
+                  <p className="text-sm text-gray-500">Available results</p>
+                </div>
+                <div className="p-3 rounded-full bg-blue-500">
+                  <AcademicCapIcon className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Payment Status</p>
+                  <p className="text-sm text-gray-500">
+                    {currentChild.paymentStatus.filter(p => p.status === 'paid').length} paid
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {currentChild.paymentStatus.filter(p => p.status !== 'paid').length} pending
+                  </p>
+                </div>
+                <div className="p-3 rounded-full bg-yellow-500">
+                  <CurrencyDollarIcon className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-lg shadow">
+              <button
+                onClick={sendComplaint}
+                className="w-full flex items-center justify-between hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                <div className="text-left">
+                  <p className="text-sm font-medium text-gray-600">Send Complaint</p>
+                  <p className="text-sm text-gray-500">Contact admin</p>
+                </div>
+                <div className="p-3 rounded-full bg-red-500">
+                  <ChatBubbleLeftRightIcon className="h-6 w-6 text-white" />
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Recent Results */}
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-semibold mb-4">
+              Recent Results - {currentChild.student.user.firstName} {currentChild.student.user.lastName}
+            </h3>
+            {currentChild.recentResults.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Term</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentChild.recentResults.map((result: any) => (
+                      <tr key={result._id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {result.academicYear} - {result.term} Term
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {result.averageScore?.toFixed(1)}%
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            result.overallGrade === 'A+' || result.overallGrade === 'A' ? 'bg-green-100 text-green-800' :
+                            result.overallGrade === 'B+' || result.overallGrade === 'B' ? 'bg-blue-100 text-blue-800' :
+                            result.overallGrade === 'C' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {result.overallGrade}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {result.position}/{result.totalStudents}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            onClick={() => downloadTranscript(currentChild.student._id)}
+                            className="text-blue-600 hover:text-blue-900"
+                          >
+                            Download
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <AcademicCapIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No results available yet.</p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Complaint Form Modal */}
+      {showComplaintForm && (
+        <ComplaintForm
+          isOpen={showComplaintForm}
+          onClose={() => setShowComplaintForm(false)}
+          recipientType="admin"
+        />
+      )}
+    </div>
+  );
+};
+
+export default ParentDashboard;

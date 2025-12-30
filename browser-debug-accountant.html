@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Debug - Accountant Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .success { color: #10b981; font-weight: bold; }
+        .error { color: #ef4444; font-weight: bold; }
+        .info { color: #3b82f6; }
+        .warning { color: #f59e0b; font-weight: bold; }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover { background: #2563eb; }
+        button:disabled { background: #9ca3af; cursor: not-allowed; }
+        #log {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .data-card {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin: 10px 0;
+        }
+        .amount {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #059669;
+        }
+        .step {
+            background: #eff6ff;
+            padding: 15px;
+            border-left: 4px solid #3b82f6;
+            margin: 10px 0;
+        }
+        .network-info {
+            background: #fef3c7;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Browser Debug - Accountant Dashboard Issue</h1>
+    <p>This page will help diagnose why the accountant dashboard is showing zeros.</p>
+
+    <div class="container">
+        <h2>🎯 Quick Diagnosis</h2>
+        <button onclick="runFullDiagnosis()" id="diagnosisBtn">Run Full Diagnosis</button>
+        <button onclick="clearLog()">Clear Log</button>
+        
+        <div class="network-info">
+            <strong>📋 Instructions:</strong><br>
+            1. Open Browser Developer Tools (F12)<br>
+            2. Go to Network tab<br>
+            3. Click "Run Full Diagnosis" button<br>
+            4. Watch for API calls and any errors
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📊 Expected vs Actual Results</h2>
+        <div id="resultsComparison" style="display: none;">
+            <div class="data-card">
+                <h3>Expected Results (from backend test):</h3>
+                <div>Total Income: <span class="amount">₦736,000</span></div>
+                <div>Total Confirmed: <span class="amount">₦656,000</span></div>
+                <div>Total Expenditure: <span class="amount">₦215,000</span></div>
+                <div>Remaining Balance: <span class="amount">₦441,000</span></div>
+                <div>Net Position: <span class="success">surplus</span></div>
+                <div>Confirmed Count: <span class="info">18</span></div>
+            </div>
+            
+            <div class="data-card">
+                <h3>Actual Results (from browser API call):</h3>
+                <div>Total Income: <span id="actualIncome" class="amount">₦0</span></div>
+                <div>Total Confirmed: <span id="actualConfirmed" class="amount">₦0</span></div>
+                <div>Total Expenditure: <span id="actualExpenditure" class="amount">₦0</span></div>
+                <div>Remaining Balance: <span id="actualBalance" class="amount">₦0</span></div>
+                <div>Net Position: <span id="actualPosition">neutral</span></div>
+                <div>Confirmed Count: <span id="actualCount">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📋 Diagnostic Log</h2>
+        <div id="log">Ready to run diagnosis...\n</div>
+    </div>
+
+    <script>
+        let authToken = null;
+        
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                success: '#10b981',
+                error: '#ef4444',
+                info: '#60a5fa',
+                warning: '#f59e0b'
+            };
+            logElement.innerHTML += `<span style="color: ${colors[type] || colors.info}">[${timestamp}] ${message}</span>\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = 'Log cleared...\n';
+        }
+        
+        async function runFullDiagnosis() {
+            log('🔍 Starting Full Accountant Dashboard Diagnosis...', 'info');
+            log('═══════════════════════════════════════════════════', 'info');
+            
+            // Step 1: Check if servers are running
+            log('\n🚀 STEP 1: Checking if servers are running...', 'info');
+            
+            try {
+                // Test server connectivity
+                const serverTest = await fetch('http://localhost:4000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: 'test', password: 'test' })
+                });
+                log('✅ Backend server is running (port 4000)', 'success');
+            } catch (error) {
+                log('❌ Backend server is NOT running or not accessible', 'error');
+                log(`   Error: ${error.message}`, 'error');
+                return;
+            }
+            
+            try {
+                const clientTest = await fetch('http://localhost:3001');
+                log('✅ Frontend client is running (port 3001)', 'success');
+            } catch (error) {
+                log('❌ Frontend client connectivity issue', 'warning');
+                log(`   Error: ${error.message}`, 'warning');
+            }
+            
+            // Step 2: Login as accountant
+            log('\n🔐 STEP 2: Logging in as accountant...', 'info');
+            
+            try {
+                const loginResponse = await fetch('http://localhost:4000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'accountant@shambil.edu.ng',
+                        password: 'accountant123'
+                    })
+                });
+                
+                if (loginResponse.ok) {
+                    const loginData = await loginResponse.json();
+                    authToken = loginData.token;
+                    log('✅ Login successful', 'success');
+                    log(`   User: ${loginData.user.firstName} ${loginData.user.lastName}`, 'info');
+                    log(`   Role: ${loginData.user.role}`, 'info');
+                    log(`   Token: ${authToken.substring(0, 20)}...`, 'info');
+                } else {
+                    const errorData = await loginResponse.json();
+                    log('❌ Login failed', 'error');
+                    log(`   Status: ${loginResponse.status}`, 'error');
+                    log(`   Error: ${errorData.message}`, 'error');
+                    return;
+                }
+            } catch (error) {
+                log('❌ Login request failed', 'error');
+                log(`   Error: ${error.message}`, 'error');
+                return;
+            }
+            
+            // Step 3: Test the exact API call the frontend should make
+            log('\n📊 STEP 3: Testing financial summary API call...', 'info');
+            log('   URL: http://localhost:4000/api/accountant/financial-summary', 'info');
+            log('   Params: academicYear=2024/2025, term=second', 'info');
+            log('   Method: GET', 'info');
+            log('   Headers: Authorization: Bearer [token]', 'info');
+            
+            try {
+                const apiResponse = await fetch('http://localhost:4000/api/accountant/financial-summary?academicYear=2024/2025&term=second', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                log(`   Response Status: ${apiResponse.status} ${apiResponse.statusText}`, 
+                    apiResponse.ok ? 'success' : 'error');
+                
+                if (apiResponse.ok) {
+                    const data = await apiResponse.json();
+                    log('✅ API call successful!', 'success');
+                    log(`   Response data: ${JSON.stringify(data, null, 2)}`, 'info');
+                    
+                    // Update the comparison display
+                    document.getElementById('resultsComparison').style.display = 'block';
+                    document.getElementById('actualIncome').textContent = `₦${data.totalIncome?.toLocaleString() || 0}`;
+                    document.getElementById('actualConfirmed').textContent = `₦${data.totalConfirmedPayments?.toLocaleString() || 0}`;
+                    document.getElementById('actualExpenditure').textContent = `₦${data.totalExpenditure?.toLocaleString() || 0}`;
+                    document.getElementById('actualBalance').textContent = `₦${Math.abs(data.remainingBalance || 0).toLocaleString()}`;
+                    document.getElementById('actualPosition').textContent = data.netPosition || 'neutral';
+                    document.getElementById('actualCount').textContent = data.confirmedPaymentsCount || 0;
+                    
+                    // Validate the data
+                    log('\n🔍 STEP 4: Validating API response data...', 'info');
+                    const validations = [
+                        { name: 'Total Income', expected: 736000, actual: data.totalIncome },
+                        { name: 'Total Confirmed', expected: 656000, actual: data.totalConfirmedPayments },
+                        { name: 'Total Expenditure', expected: 215000, actual: data.totalExpenditure },
+                        { name: 'Remaining Balance', expected: 441000, actual: Math.abs(data.remainingBalance || 0) },
+                        { name: 'Confirmed Count', expected: 18, actual: data.confirmedPaymentsCount }
+                    ];
+                    
+                    let allValid = true;
+                    validations.forEach(v => {
+                        const isValid = v.expected === v.actual;
+                        const status = isValid ? '✅' : '❌';
+                        log(`   ${status} ${v.name}: Expected ${v.expected?.toLocaleString()}, Got ${v.actual?.toLocaleString()}`, 
+                            isValid ? 'success' : 'error');
+                        if (!isValid) allValid = false;
+                    });
+                    
+                    if (allValid) {
+                        log('\n🎉 ALL API DATA IS CORRECT!', 'success');
+                        log('   The backend is working perfectly.', 'success');
+                        log('   The issue is in the frontend React component.', 'warning');
+                    } else {
+                        log('\n⚠️ API data validation failed', 'warning');
+                        log('   There may be a backend data issue.', 'warning');
+                    }
+                    
+                } else {
+                    const errorText = await apiResponse.text();
+                    log('❌ API call failed', 'error');
+                    log(`   Status: ${apiResponse.status} ${apiResponse.statusText}`, 'error');
+                    log(`   Response: ${errorText}`, 'error');
+                }
+                
+            } catch (error) {
+                log('❌ API request failed', 'error');
+                log(`   Error: ${error.message}`, 'error');
+                log(`   Stack: ${error.stack}`, 'error');
+            }
+            
+            // Step 5: Frontend troubleshooting recommendations
+            log('\n🛠️ STEP 5: Frontend Troubleshooting Recommendations...', 'info');
+            log('═══════════════════════════════════════════════════', 'info');
+            
+            if (authToken && document.getElementById('actualIncome').textContent !== '₦0') {
+                log('✅ API is working correctly from browser', 'success');
+                log('   The issue is likely in the React component.', 'warning');
+                log('\n🔧 FRONTEND FIXES NEEDED:', 'warning');
+                log('   1. Check React component for JavaScript errors', 'info');
+                log('   2. Verify the useEffect hook is calling fetchFinancialSummary', 'info');
+                log('   3. Check if the API response is being set to state correctly', 'info');
+                log('   4. Look for any error handling that might be setting values to 0', 'info');
+                log('   5. Check browser console for React errors', 'info');
+            } else {
+                log('❌ API is not working from browser', 'error');
+                log('   This indicates a server or authentication issue.', 'error');
+            }
+            
+            log('\n📋 NEXT STEPS:', 'info');
+            log('   1. Open the actual accountant dashboard in another tab', 'info');
+            log('   2. Open browser Developer Tools (F12)', 'info');
+            log('   3. Go to Console tab and look for errors', 'info');
+            log('   4. Go to Network tab and refresh the page', 'info');
+            log('   5. Look for the API call to /api/accountant/financial-summary', 'info');
+            log('   6. Check if the API call is being made and what response it gets', 'info');
+            
+            log('\n✅ Diagnosis complete!', 'success');
+        }
+        
+        // Auto-run diagnosis after page loads
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                log('🚀 Page loaded. Click "Run Full Diagnosis" to start...', 'info');
+            }, 500);
+        });
+    </script>
+</body>
+</html>
